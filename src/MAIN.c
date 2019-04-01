@@ -5,6 +5,8 @@
 #include <math.h>
 
 GtkWidget *window,*scale,*scrollGenes,*siguienteGenes, *paneGenes;
+//Lista que guarda los nombres de los genes
+char listaNombres[100][10];
 
 //Crea un viewport y un panel adentro del scroll window para poder insertar objetos huérfanos.
 
@@ -22,6 +24,15 @@ void crearScrollGenes()
     gtk_widget_show(paneGenes);
 }
 
+//Listener de los text entry cuando cambia su valor
+void valorCambiado(GtkWidget *widget, gpointer *data)
+{
+	char nombre[10];
+	sprintf(nombre, "%s", gtk_entry_get_text(widget));
+	strcpy(listaNombres[(int)data], nombre);
+    g_print("%s", listaNombres[(int)data]);
+}
+
 //Crea numero cantidad de labels y un text entries huerfanos
 void insertarGenes(int numero)
 {
@@ -33,8 +44,12 @@ void insertarGenes(int numero)
 	   sprintf(nombre, "G%d", a);
 	   gtk_entry_set_text(huerfanoTemp, nombre);
        gtk_fixed_put(paneGenes, huerfanoTemp, 250, 40*(a)+35);
+       gtk_entry_set_max_length (huerfanoTemp,10);
        gtk_entry_set_width_chars(huerfanoTemp,10);
        gtk_widget_show(huerfanoTemp);
+       g_signal_connect (huerfanoTemp, "changed",valorCambiado, a);
+       strcpy(listaNombres[a], nombre);
+
 
        GtkWidget *labelHuerfano = gtk_label_new("");
        sprintf(nombre, "Gen %d: ", a);
@@ -61,7 +76,7 @@ void destruirHijos(GtkWidget *container)
 /*****************************Listeners**************************/
 void on_botonGenes_clicked()
 {
-
+	
 }
 
 void on_scale_value_changed()

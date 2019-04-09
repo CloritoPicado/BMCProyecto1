@@ -144,7 +144,7 @@ void recrearMatriz()
             }                      
             	GtkWidget *entry = gtk_entry_new();
 
-    			char temp[100];   
+    			char temp[10];   
     			gcvt(listaProbabilidades[(cantidadGenes*(j-1))+i-1], 9, temp); 
             	gtk_entry_set_text(entry, temp);
             	g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
@@ -218,19 +218,18 @@ void crearMatriz()
             	GtkWidget *entry = gtk_entry_new();
             	if(j > i)
             	{
-            		g_printf("%s", "holis");
             		gtk_entry_set_text(entry, "0.0");
             		listaProbabilidades[contador] = 0.0f;
             		g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
             	}  
             	else
             	{
+
             		gtk_entry_set_text(entry, "0.5");
             		listaProbabilidades[contador] = 0.5f;
             		g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
-            	}              
-            	
-            	            	
+            	}             
+            	contador++;            	   
             	gtk_entry_set_max_length (entry,8);
        			gtk_entry_set_width_chars(entry,8);
             	gtk_widget_set_size_request(entry, 100/(cantidadGenes+4), 100/(cantidadGenes+4));
@@ -313,7 +312,8 @@ void writeFile(char* filename)
 
     for(int b = 0; b < cantidadGenes*cantidadGenes; b++)
     {
-    	fprintf(file, "%f\n", listaProbabilidades[b]);
+    	g_print("%1.6f\n", listaProbabilidades[b]);
+    	fprintf(file, "%1.6f\n", listaProbabilidades[b]);
     }
     fclose(file);
 }
@@ -374,7 +374,7 @@ void readFile(char* filename)
 void on_bProbabilidades_clicked()
 {
 	//g_print("%f", listaProbabilidades[5]);
-	g_print("%f", getProbabilidad(3,3));
+	g_print("%f", getProbabilidad(0,0));
 }
 
 void on_botonGenes_clicked()

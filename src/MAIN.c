@@ -54,20 +54,7 @@ void valorCambiado(GtkWidget *widget, gpointer *data)
 void valorCambiadoProbabilidades(GtkWidget *widget, gpointer *data)
 {
 	listaProbabilidades[(int)data] = atof(gtk_entry_get_text(widget));
-	/*
-	char nombre[10];
-	sprintf(nombre, "%f", atof(gtk_entry_get_text(widget)));
-	//printf("float value : %4.8f\n" ,atof("0.45454")); 
-	g_print("%f", atof(gtk_entry_get_text(widget)));
-	char buffer [10];
-  	float cx;
-  	cx = snprintf ( buffer, 10, "%d", gtk_entry_get_text(widget));
-  	
-  	g_print("%d", cx);
-	char nombre[10];
-	sprintf(nombre, "%f", gtk_entry_get_text(widget));
-	
-    g_print("%s", listaNombres[(int)data]);*/
+
 }
 
 //Crea numero cantidad de labels y un text entries huerfanos
@@ -95,6 +82,90 @@ void insertarGenes(int numero)
        gtk_widget_show(labelHuerfano);
 	}
 	
+}
+
+//Devuelve la posicion [x][y] de la lista de probabilidades
+float getProbabilidad(int x, int y)
+{
+	return listaProbabilidades[(cantidadGenes*(y))+x];
+}
+
+//Ingresa el valor f en la posicion [x][y] de la lista de probabilidades
+void setProbabilidad(int x, int y, float f)
+{
+	listaProbabilidades[(cantidadGenes*(y))+x] = f;
+}
+
+void recrearMatriz()
+{
+	GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_row_spacing (GTK_GRID(grid), 10);
+    gtk_grid_set_column_spacing (GTK_GRID(grid), 10);
+    int contador = 0;
+
+    //const GdkRGBA *color;
+    for(int i = 1; i < cantidadGenes+1; i++)
+    {
+
+        for(int j = 1; j < cantidadGenes+1; j++)
+        {
+
+            if(i==1)
+            {
+
+                GtkWidget *label = gtk_label_new(listaNombres[j-1]);
+                gtk_label_set_width_chars(GTK_LABEL(label), 10);
+                gtk_widget_set_size_request(label, 500/(cantidadGenes+4), 500/(cantidadGenes+4));
+                box = gtk_box_new(0, 0);
+                gtk_box_pack_start(GTK_BOX(box), label, 0,0,0);  
+                gtk_grid_attach(GTK_GRID(grid), box, 0, j, 1, 1);
+                
+                //gdk_rgba_parse (color, "#48D1CC");
+                //gtk_widget_override_background_color (box,GTK_STATE_NORMAL, color);                
+
+                gtk_widget_show (label);
+                gtk_widget_show (box);
+            }
+            if(j==1)
+            {
+
+                GtkWidget *label = gtk_label_new(listaNombres[i-1]);
+                gtk_label_set_width_chars(GTK_LABEL(label), 10);
+                gtk_widget_set_size_request(label, 500/(cantidadGenes+4), 500/(cantidadGenes+4));
+                box = gtk_box_new(0, 0);
+                gtk_box_pack_start(GTK_BOX(box), label, 0,0,0);  
+                gtk_grid_attach(GTK_GRID(grid), box, i, 0, 1, 1);
+                //const GdkRGBA *color2;
+                //gdk_rgba_parse (color, "#d91e18");
+                //gtk_widget_override_background_color (box,GTK_STATE_NORMAL, color); 
+
+                gtk_widget_show (label);
+                gtk_widget_show (box);
+            }                      
+            	GtkWidget *entry = gtk_entry_new();
+
+    			char temp[100];   
+    			gcvt(listaProbabilidades[(cantidadGenes*(j-1))+i-1], 9, temp); 
+            	gtk_entry_set_text(entry, temp);
+            	g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
+            	contador++;            	
+            	gtk_entry_set_max_length (entry,8);
+       			gtk_entry_set_width_chars(entry,8);
+            	gtk_widget_set_size_request(entry, 100/(cantidadGenes+4), 100/(cantidadGenes+4));
+                box = gtk_box_new(0, 0);
+                gtk_box_pack_start(GTK_BOX(box), entry, 0,0,0);  
+                gtk_grid_attach(GTK_GRID(grid), box, i, j, 1, 1);
+
+                //gdk_rgba_parse (color, "#FFFFFF");
+                //gtk_widget_override_background_color (box,GTK_STATE_NORMAL, color); 
+
+
+                gtk_widget_show (entry);
+                gtk_widget_show (box);  
+        }
+    }
+    gtk_container_add (GTK_CONTAINER (paneProbalidad), grid);
+    gtk_widget_show (grid);
 }
 
 void crearMatriz()
@@ -189,7 +260,7 @@ void SignalAbrir(gpointer window)
     gint resp = gtk_dialog_run(GTK_DIALOG(dialog));
     if(resp == GTK_RESPONSE_OK)
     {
-        //readFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+        readFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
         g_print("%s\n", gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
     }
     gtk_widget_destroy(dialog);
@@ -219,7 +290,6 @@ void writeFile(char* filename)
     file = fopen(filename, "w");
 
     fprintf(file, "%i\n", cantidadGenes);
-    g_print("%s", "holis");
 
     for(int a = 0; a < cantidadGenes; a++)
     {
@@ -231,58 +301,70 @@ void writeFile(char* filename)
 
     for(int b = 0; b < cantidadGenes*cantidadGenes; b++)
     {
-    	g_print("%s", "holis");
     	fprintf(file, "%f\n", listaProbabilidades[b]);
     }
-    g_print("%s", "holis");
     fclose(file);
 }
 
 
+//Limpia un String leido
+void strip(char *s) {
+    char *p2 = s;
+    while(*s != '\0') {
+        if(*s != '\t' && *s != '\n') {
+            *p2++ = *s++;
+        } else {
+            ++s;
+        }
+    }
+    *p2 = '\0';
+}
+
+
 //Lee y carga un archivo guardado
-/*void readFile(char* filename)
+void readFile(char* filename)
 {    
 
     FILE *file;
     file = fopen(filename, "r");
-    char array[10];
-    fgets(array, sizeof(array), file);
-    strip(array);
-    //fscanf(file, "%i", &tiempototal);
-    tiempototal = atoi(array);
-    gtk_entry_set_text(plan,array);
-
+    char array[100];
     fgets(array, sizeof(array), file);
     strip(array);
 
-    costoini = atoi(array);
-    gtk_entry_set_text(costo,array);
-    
+    cantidadGenes = atoi(array);
 
-    fgets(array, sizeof(array), file);
-    strip(array);
-    
-    vidaUtil = atoi(array);
-
-    gtk_combo_box_set_active(vidaU,vidaUtil-1);
-    on_aceptPlan_clicked();
-
-
-    for(int i=1;i<=vidaUtil;i++){ 
-        for(int j=2;j<5;j++){         
-
-            fgets(array, sizeof(array), file);
-            strip(array); //Quita espacios null
-            gtk_entry_set_text(gtk_grid_get_child_at(gridt,j,i),array);
-        }
+    for(int a = 0; a < cantidadGenes; a++)
+    {
+    	fgets(array, sizeof(array), file);
+    	strip(array);
+    	strcpy(listaNombres[a], array);
     }
 
+    for(int a = 0; a < cantidadGenes*cantidadGenes; a++)
+    {
+    	fgets(array, sizeof(array), file);
+    	strip(array);
+    	setProbabilidad(a/cantidadGenes, a%cantidadGenes, atof(array));    	
+    }
 
-    fclose(file);
+    gtk_widget_hide(window);
+	crearScrollProbabilidad();
+	recrearMatriz();
+    gtk_widget_show(ventanaProbabilidad);
+}
 
-}*/
+    
+
+
 
 /*****************************Listeners**************************/
+
+void on_bProbabilidades_clicked()
+{
+	//g_print("%f", listaProbabilidades[5]);
+	g_print("%f", getProbabilidad(3,3));
+}
+
 void on_botonGenes_clicked()
 {
 	gtk_widget_hide(window);
@@ -348,6 +430,7 @@ int main(int argc, char *argv[])
     scrollGenes = GTK_WIDGET(gtk_builder_get_object(builder, "scrollGenes"));
     scrollProbabilidad = GTK_WIDGET(gtk_builder_get_object(builder, "scrollProbabilidad"));
     GtkWidget *botonGenes = GTK_WIDGET(gtk_builder_get_object(builder, "botonGenes"));
+    GtkWidget *bProbabilidades = GTK_WIDGET(gtk_builder_get_object(builder, "bProbabilidades"));
     menuAbrir = GTK_WIDGET(gtk_builder_get_object(builder, "menuAbrir"));
 
 

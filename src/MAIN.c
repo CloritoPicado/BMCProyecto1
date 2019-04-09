@@ -1,10 +1,11 @@
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
-GtkWidget *window,*scale,*scrollGenes,*siguienteGenes, *paneGenes , *scrollProbabilidad, *paneProbalidad, *ventanaProbabilidad, *box;
+GtkWidget *window,*scale,*scrollGenes,*siguienteGenes, *paneGenes , *scrollProbabilidad, *paneProbalidad, *ventanaProbabilidad, *box, *menuAbrir;
 //Lista que guarda los nombres de los genes
 char listaNombres[100][10];
 float listaProbabilidades[625];
@@ -49,6 +50,26 @@ void valorCambiado(GtkWidget *widget, gpointer *data)
     g_print("%s", listaNombres[(int)data]);
 }
 
+//Listener de los text entry de probabilidades cuando cambia su valor
+void valorCambiadoProbabilidades(GtkWidget *widget, gpointer *data)
+{
+	listaProbabilidades[(int)data] = atof(gtk_entry_get_text(widget));
+	/*
+	char nombre[10];
+	sprintf(nombre, "%f", atof(gtk_entry_get_text(widget)));
+	//printf("float value : %4.8f\n" ,atof("0.45454")); 
+	g_print("%f", atof(gtk_entry_get_text(widget)));
+	char buffer [10];
+  	float cx;
+  	cx = snprintf ( buffer, 10, "%d", gtk_entry_get_text(widget));
+  	
+  	g_print("%d", cx);
+	char nombre[10];
+	sprintf(nombre, "%f", gtk_entry_get_text(widget));
+	
+    g_print("%s", listaNombres[(int)data]);*/
+}
+
 //Crea numero cantidad de labels y un text entries huerfanos
 void insertarGenes(int numero)
 {
@@ -81,6 +102,7 @@ void crearMatriz()
 	GtkWidget *grid = gtk_grid_new();
     gtk_grid_set_row_spacing (GTK_GRID(grid), 10);
     gtk_grid_set_column_spacing (GTK_GRID(grid), 10);
+    int contador = 0;
 
     //const GdkRGBA *color;
     for(int i = 1; i < cantidadGenes+1; i++)
@@ -123,6 +145,9 @@ void crearMatriz()
             }                      
             	GtkWidget *entry = gtk_entry_new();
             	gtk_entry_set_text(entry, "0.5");
+            	listaProbabilidades[contador] = 0.5f;
+            	g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
+            	contador++;            	
             	gtk_entry_set_max_length (entry,8);
        			gtk_entry_set_width_chars(entry,8);
             	gtk_widget_set_size_request(entry, 100/(cantidadGenes+4), 100/(cantidadGenes+4));
@@ -155,6 +180,108 @@ void destruirHijos(GtkWidget *container)
     g_list_free(hijos);
 }
 
+//Activa la funcionalidad de cargar
+void SignalAbrir(gpointer window)
+{
+    GtkWidget *dialog;
+    dialog = gtk_file_chooser_dialog_new ("Abrir archivo", GTK_WINDOW(window),GTK_FILE_CHOOSER_ACTION_OPEN,GTK_STOCK_OK,GTK_RESPONSE_OK,GTK_STOCK_CANCEL,GTK_RESPONSE_CANCEL,NULL);
+    gtk_widget_show_all(dialog);
+    gint resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    if(resp == GTK_RESPONSE_OK)
+    {
+        //readFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+        g_print("%s\n", gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+    }
+    gtk_widget_destroy(dialog);
+}
+
+//Activa la funcionalidad de guardar
+void SignalSalvar()
+{
+    GtkWidget *dialog;
+    dialog = gtk_file_chooser_dialog_new ("Salvar archivo", GTK_WINDOW(window),GTK_FILE_CHOOSER_ACTION_SAVE,GTK_STOCK_OK,GTK_RESPONSE_OK,GTK_STOCK_CANCEL,GTK_RESPONSE_CANCEL,NULL);
+    gtk_widget_show_all(dialog);
+    gint resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    if(resp == GTK_RESPONSE_OK)
+    {
+        g_print("%s\n", gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+        writeFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+    }
+    gtk_widget_destroy(dialog);
+
+}
+
+//Guarda los datos de un archivo
+void writeFile(char* filename)
+{
+
+    FILE *file;
+    file = fopen(filename, "w");
+
+    fprintf(file, "%i\n", cantidadGenes);
+    g_print("%s", "holis");
+
+    for(int a = 0; a < cantidadGenes; a++)
+    {
+    	char nombre[10];	
+		strcpy(nombre, listaNombres[a]);
+		g_print("%s\n", nombre);
+    	fprintf(file, "%s\n", nombre);
+    }
+
+    for(int b = 0; b < cantidadGenes*cantidadGenes; b++)
+    {
+    	g_print("%s", "holis");
+    	fprintf(file, "%f\n", listaProbabilidades[b]);
+    }
+    g_print("%s", "holis");
+    fclose(file);
+}
+
+
+//Lee y carga un archivo guardado
+/*void readFile(char* filename)
+{    
+
+    FILE *file;
+    file = fopen(filename, "r");
+    char array[10];
+    fgets(array, sizeof(array), file);
+    strip(array);
+    //fscanf(file, "%i", &tiempototal);
+    tiempototal = atoi(array);
+    gtk_entry_set_text(plan,array);
+
+    fgets(array, sizeof(array), file);
+    strip(array);
+
+    costoini = atoi(array);
+    gtk_entry_set_text(costo,array);
+    
+
+    fgets(array, sizeof(array), file);
+    strip(array);
+    
+    vidaUtil = atoi(array);
+
+    gtk_combo_box_set_active(vidaU,vidaUtil-1);
+    on_aceptPlan_clicked();
+
+
+    for(int i=1;i<=vidaUtil;i++){ 
+        for(int j=2;j<5;j++){         
+
+            fgets(array, sizeof(array), file);
+            strip(array); //Quita espacios null
+            gtk_entry_set_text(gtk_grid_get_child_at(gridt,j,i),array);
+        }
+    }
+
+
+    fclose(file);
+
+}*/
+
 /*****************************Listeners**************************/
 void on_botonGenes_clicked()
 {
@@ -170,6 +297,39 @@ void on_scale_value_changed()
 	destruirHijos(paneGenes);
 	insertarGenes(valor);
 	cantidadGenes = valor;
+}
+
+void on_menuAbrir_activate()
+{
+	SignalAbrir(window);
+}
+
+void on_menuSalvar_activate()
+{
+	SignalSalvar();
+}
+
+void on_menuAbrir2_activate()
+{
+	SignalAbrir(ventanaProbabilidad);
+}
+
+void on_menuSalvar2_activate()
+{
+	SignalSalvar();
+}
+
+void on_menuSalir_activate()
+{
+	gtk_widget_destroy(GTK_WIDGET(window));
+	gtk_widget_destroy(GTK_WIDGET(ventanaProbabilidad));
+}
+
+void on_menuSalir2_activate()
+{
+	gtk_widget_destroy(GTK_WIDGET(window));
+	gtk_widget_destroy(GTK_WIDGET(ventanaProbabilidad));
+
 }
 /*****************************</Listeners>***********************/
 
@@ -188,6 +348,9 @@ int main(int argc, char *argv[])
     scrollGenes = GTK_WIDGET(gtk_builder_get_object(builder, "scrollGenes"));
     scrollProbabilidad = GTK_WIDGET(gtk_builder_get_object(builder, "scrollProbabilidad"));
     GtkWidget *botonGenes = GTK_WIDGET(gtk_builder_get_object(builder, "botonGenes"));
+    menuAbrir = GTK_WIDGET(gtk_builder_get_object(builder, "menuAbrir"));
+
+
     
     gtk_builder_connect_signals(builder, NULL);
     g_object_unref(builder);    

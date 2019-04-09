@@ -213,12 +213,24 @@ void crearMatriz()
 
                 gtk_widget_show (label);
                 gtk_widget_show (box);
-            }                      
+            }      
+
             	GtkWidget *entry = gtk_entry_new();
-            	gtk_entry_set_text(entry, "0.5");
-            	listaProbabilidades[contador] = 0.5f;
-            	g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
-            	contador++;            	
+            	if(j > i)
+            	{
+            		g_printf("%s", "holis");
+            		gtk_entry_set_text(entry, "0.0");
+            		listaProbabilidades[contador] = 0.0f;
+            		g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
+            	}  
+            	else
+            	{
+            		gtk_entry_set_text(entry, "0.5");
+            		listaProbabilidades[contador] = 0.5f;
+            		g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
+            	}              
+            	
+            	            	
             	gtk_entry_set_max_length (entry,8);
        			gtk_entry_set_width_chars(entry,8);
             	gtk_widget_set_size_request(entry, 100/(cantidadGenes+4), 100/(cantidadGenes+4));

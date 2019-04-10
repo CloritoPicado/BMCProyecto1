@@ -220,6 +220,7 @@ void crearMatriz()
             	{
             		gtk_entry_set_text(entry, "0.0");
             		listaProbabilidades[contador] = 0.0f;
+                    gtk_widget_set_sensitive (entry,FALSE);
             		g_signal_connect (entry, "changed",valorCambiadoProbabilidades, contador);
             	}  
             	else
